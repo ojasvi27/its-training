@@ -1,0 +1,172 @@
+.panom {
+	padding-top: 40px;
+	width: 50%;
+	margin: 0px auto;
+	text-align: center;
+}
+/*
+ @media screen and (max-width: 500px) {
+ div{width:70%;}
+ }*/
+.brands {
+	width: 100%;
+	margin-top: 10px;
+}
+@media screen and (max-device-width: 800px) {
+	html {
+		background: url() #000 no-repeat center center fixed;
+	}
+	#bgvid {
+		display: none;
+	}
+}
+@media (max-width: 320px) {
+	#polina {
+		height: 480px;
+	}
+	#myCarousel-mini {
+		width: 70%
+	}
+	.xmd {
+		width: 100%
+	}
+	.wh_text {
+		font-size: 19px
+	}
+	.p_header_r {
+		font-size: 14px
+	}
+	.mini-submenu {
+		display: none;
+	}
+	.panom {
+		padding-top: 40px;
+		width: 70%;
+		margin: 0px auto;
+		text-align: center;
+	}
+	div {
+		width: -15px;
+	}
+	.column {
+		display: none;
+	}
+	.list-map {
+		font-size: 13px;
+	}
+	.map-container ul {
+		margin-top: 0px;
+	}
+	.address_map {
+		font-size: 12px
+	}
+	.f_r_l li a {
+		font-size: 14px;
+	}
+	.btn-sm {
+		font-size: 12px;
+	}
+}
+@media (max-width: 360px) {
+	#polina {
+		height: 480px;
+	}
+	#myCarousel-mini {
+		width: 70%
+	}
+	.xmd {
+		width: 100%
+	}
+	.wh_text {
+		font-size: 19px
+	}
+	.p_header_r {
+		font-size: 14px
+	}
+	.mini-submenu {
+		display: none;
+	}
+	.panom {
+		padding-top: 40px;
+		width: 70%;
+		margin: 0px auto;
+		text-align: center;
+	}
+	div {
+		width: -15px;
+	}
+	.column {
+		display: none;
+	}
+	.list-map {
+		font-size: 13px;
+	}
+	.map-container ul {
+		margin-top: 0px;
+	}
+	.address_map {
+		font-size: 12px
+	}
+	.f_r_l li a {
+		font-size: 14px;
+	}
+	.btn-sm {
+		font-size: 12px;
+	}
+}
+@media (max-width: 768px) {
+	#polina {
+		height: 480px;
+	}
+	#myCarousel-mini {
+		width: 70%
+	}
+	.xmd {
+		width: 50%
+	}
+	.wh_text {
+		font-size: 19px
+	}
+	.p_header_r {
+		font-size: 14px
+	}
+	.mini-submenu {
+		display: none;
+	}
+	.panom {
+		padding-top: 40px;
+		width: 70%;
+		margin: 0px auto;
+		text-align: center;
+	}
+	div {
+		width: -15px;
+	}
+	.column {
+		display: none;
+	}
+	.list-map {
+		font-size: 13px;
+	}
+	.map-container ul {
+		margin-top: 0px;
+	}
+	.address_map {
+		font-size: 12px
+	}
+	.f_r_l li a {
+		font-size: 14px;
+	}
+	.btn-sm {
+		font-size: 12px;
+	}
+	.map_main ul {
+		width: 100%
+	}
+	.map_main li {
+		float: left;
+		margin-left: 2%;
+	}
+
+}
+

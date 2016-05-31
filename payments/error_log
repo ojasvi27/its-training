@@ -1,0 +1,18 @@
+[31-Dec-2015 05:04:24 America/Chicago] PHP Warning:  require_once(class/config.inc.php): failed to open stream: No such file or directory in /home/itstrain/public_html/payments/simple_payments.php on line 2
+[31-Dec-2015 05:04:24 America/Chicago] PHP Fatal error:  require_once(): Failed opening required 'class/config.inc.php' (include_path='.:/opt/php54/lib/php') in /home/itstrain/public_html/payments/simple_payments.php on line 2
+[31-Dec-2015 16:34:49 Asia/Calcutta] PHP Warning:  include(includes/for_css_js.php): failed to open stream: No such file or directory in /home/itstrain/public_html/payments/simple_payments.php on line 50
+[31-Dec-2015 16:34:49 Asia/Calcutta] PHP Warning:  include(includes/for_css_js.php): failed to open stream: No such file or directory in /home/itstrain/public_html/payments/simple_payments.php on line 50
+[31-Dec-2015 16:34:49 Asia/Calcutta] PHP Warning:  include(): Failed opening 'includes/for_css_js.php' for inclusion (include_path='.:/opt/php54/lib/php') in /home/itstrain/public_html/payments/simple_payments.php on line 50
+[31-Dec-2015 16:34:49 Asia/Calcutta] PHP Warning:  include(includes/header_index.php): failed to open stream: No such file or directory in /home/itstrain/public_html/payments/simple_payments.php on line 59
+[31-Dec-2015 16:34:49 Asia/Calcutta] PHP Warning:  include(includes/header_index.php): failed to open stream: No such file or directory in /home/itstrain/public_html/payments/simple_payments.php on line 59
+[31-Dec-2015 16:34:49 Asia/Calcutta] PHP Warning:  include(): Failed opening 'includes/header_index.php' for inclusion (include_path='.:/opt/php54/lib/php') in /home/itstrain/public_html/payments/simple_payments.php on line 59
+[31-Dec-2015 16:34:49 Asia/Calcutta] PHP Fatal error:  Call to undefined method api::getpaymentDetailsSimple() in /home/itstrain/public_html/payments/simple_payments.php on line 63
+[31-Dec-2015 16:35:10 Asia/Calcutta] PHP Warning:  include(includes/header_index.php): failed to open stream: No such file or directory in /home/itstrain/public_html/payments/simple_payments.php on line 59
+[31-Dec-2015 16:35:10 Asia/Calcutta] PHP Warning:  include(includes/header_index.php): failed to open stream: No such file or directory in /home/itstrain/public_html/payments/simple_payments.php on line 59
+[31-Dec-2015 16:35:10 Asia/Calcutta] PHP Warning:  include(): Failed opening 'includes/header_index.php' for inclusion (include_path='.:/opt/php54/lib/php') in /home/itstrain/public_html/payments/simple_payments.php on line 59
+[31-Dec-2015 16:35:10 Asia/Calcutta] PHP Fatal error:  Call to undefined method api::getpaymentDetailsSimple() in /home/itstrain/public_html/payments/simple_payments.php on line 63
+[31-Dec-2015 16:35:17 Asia/Calcutta] PHP Warning:  include(includes/header_index.php): failed to open stream: No such file or directory in /home/itstrain/public_html/payments/simple_payments.php on line 59
+[31-Dec-2015 16:35:17 Asia/Calcutta] PHP Warning:  include(includes/header_index.php): failed to open stream: No such file or directory in /home/itstrain/public_html/payments/simple_payments.php on line 59
+[31-Dec-2015 16:35:17 Asia/Calcutta] PHP Warning:  include(): Failed opening 'includes/header_index.php' for inclusion (include_path='.:/opt/php54/lib/php') in /home/itstrain/public_html/payments/simple_payments.php on line 59
+[31-Dec-2015 16:35:17 Asia/Calcutta] PHP Fatal error:  Call to undefined method api::getpaymentDetailsSimple() in /home/itstrain/public_html/payments/simple_payments.php on line 63
+[31-Dec-2015 16:35:39 Asia/Calcutta] PHP Fatal error:  Call to undefined method api::getpaymentDetailsSimple() in /home/itstrain/public_html/payments/simple_payments.php on line 63
